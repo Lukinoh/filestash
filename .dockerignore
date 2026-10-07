@@ -1,0 +1,24 @@
+.gitignore
+.github
+.github/workflows
+Jenkinsfile
+
+docker
+docker-compose*.yml
+
+*.md
+LICENSE
+
+dist
+*.exe
+*.test
+*.out
+
+# frontend
+node_modules
+public/node_modules
+
+# Editor / OS junk
+.DS_Store
+Thumbs.db
+*.swp
