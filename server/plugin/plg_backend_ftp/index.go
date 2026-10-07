@@ -211,13 +211,21 @@ func (f Ftp) LoginForm() Form {
 				Name:        "advanced",
 				Type:        "enable",
 				Placeholder: "Advanced",
-				Target:      []string{"ftp_path", "ftp_port", "ftp_conn"},
+				Target:      []string{"ftp_path", "ftp_path_denylist", "ftp_port", "ftp_conn"},
 			},
 			{
 				Id:          "ftp_path",
 				Name:        "path",
 				Type:        "text",
 				Placeholder: "Path",
+			},
+			{
+				Id:          "ftp_path_denylist",
+				Name:        "path_denylist",
+				Type:        "text",
+				MultiValue:  true,
+				Placeholder: "Path deny list",
+				Description: "Comma separated list of paths (relative to \"Path\") to hide and block access to",
 			},
 			{
 				Id:          "ftp_port",

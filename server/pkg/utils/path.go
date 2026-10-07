@@ -77,3 +77,73 @@ func GlobMatch(pattern, name string) bool {
 	m, _ := doublestar.Match(pattern, name)
 	return m
 }
+
+/*
+ * Normalise the Path in the form of "/xxx/xxx" or simply "/"
+ */
+func NormalisePath(path string) string {
+	path = strings.TrimSpace(path)
+	path = strings.Trim(path, "/")
+	return "/" + path
+}
+
+/*
+ * Normalised a comma separated list of path into an array:
+ * ParsePathList("docs")            → ["/docs"]
+ * ParsePathList("/docs/")          → ["/docs"]
+ * ParsePathList("docs, other")     → ["/docs", "/other"]
+ * ParsePathList("docs,,/secret/")  → ["/docs", "/secret"]
+ */
+func ParsePathList(raw string) []string {
+	list := make([]string, 0)
+	for _, path := range strings.Split(raw, ",") {
+		path = NormalisePath(path)
+
+		if path != "/" {
+			list = append(list, path)
+		}
+	}
+	return list
+}
+
+/*
+ * Express "fullpath" relative to "chroot", always starting with "/"
+ * RelativePath("/data", "/data/docs/secret")  → "/docs/secret"
+ * RelativePath("/data", "/data")              → "/"
+ * RelativePath("/data", "/data/secret")       → "/secret"
+ */
+func RelativePath(chroot, fullpath string) string {
+	return NormalisePath(strings.TrimPrefix(fullpath, strings.TrimSuffix(EnforceDirectory(chroot), "/")))
+}
+
+/*
+ * Check if the relPath is part of the denyList.
+ * Either by exact matching or if it is nested
+ */
+func IsPathDenied(denyList []string, relPath string) bool {
+	relPath = NormalisePath(relPath)
+	for _, entry := range denyList {
+		if relPath == entry || strings.HasPrefix(relPath, entry+"/") {
+			return true
+		}
+	}
+	return false
+}
+
+/*
+ * Remove the directory entries that fall under a deny-listed path
+ */
+func FilterPathDenyList(denyList []string, dirRelPath string, entries []os.FileInfo) []os.FileInfo {
+	if len(denyList) == 0 {
+		return entries
+	}
+
+	dirRelPath = strings.TrimSuffix(dirRelPath, "/")
+	filtered := make([]os.FileInfo, 0, len(entries))
+	for _, entry := range entries {
+		if !IsPathDenied(denyList, dirRelPath+"/"+entry.Name()) {
+			filtered = append(filtered, entry)
+		}
+	}
+	return filtered
+}

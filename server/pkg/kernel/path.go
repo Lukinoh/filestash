@@ -26,5 +26,13 @@ func PathBuilder(ctx *App, path string) (string, error) {
 	} else if !strings.HasSuffix(chroot, "/") && strings.HasSuffix(chroot, path) {
 		return chroot, nil
 	}
+
+	// Block access to deny-listed paths
+	// handler_ls.go additionally hides them from listings
+	denyList := utils.ParsePathList(ctx.Session["path_denylist"])
+	if utils.IsPathDenied(denyList, utils.RelativePath(chroot, fullpath)) {
+		return "", utils.ErrNotAllowed
+	}
+
 	return fullpath, nil
 }

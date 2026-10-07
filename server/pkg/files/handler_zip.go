@@ -11,8 +11,8 @@ import (
 
 	. "github.com/mickael-kerjean/filestash/server/pkg/core"
 	. "github.com/mickael-kerjean/filestash/server/pkg/kernel"
-	. "github.com/mickael-kerjean/filestash/server/pkg/utils"
 	. "github.com/mickael-kerjean/filestash/server/pkg/permissions"
+	. "github.com/mickael-kerjean/filestash/server/pkg/utils"
 )
 
 func FileDownloader(ctx *App, res http.ResponseWriter, req *http.Request) {
@@ -80,6 +80,10 @@ func FileDownloader(ctx *App, res http.ResponseWriter, req *http.Request) {
 			Log.Debug("downloader::ls path['%s'] error['%s']", backendPath, err.Error())
 			return err
 		}
+
+		denyList := ParsePathList(c.Session["path_denylist"])
+		entries = FilterPathDenyList(denyList, RelativePath(c.Session["path"], backendPath), entries)
+
 		for i := 0; i < len(entries); i++ {
 			newBackendPath := backendPath + entries[i].Name()
 			if entries[i].IsDir() {

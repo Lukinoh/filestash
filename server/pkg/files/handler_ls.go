@@ -104,6 +104,9 @@ func FileLs(ctx *App, res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	denyList := ParsePathList(ctx.Session["path_denylist"])
+	entries = FilterPathDenyList(denyList, RelativePath(ctx.Session["path"], path), entries)
+
 	files := make([]FileInfo, len(entries))
 	etagger := crc32.NewIEEE()
 	json.NewEncoder(etagger).Encode(perms)

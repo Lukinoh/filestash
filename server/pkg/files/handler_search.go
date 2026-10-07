@@ -2,12 +2,11 @@ package files
 
 import (
 	"net/http"
-	"strings"
 
 	. "github.com/mickael-kerjean/filestash/server/pkg/core"
 	. "github.com/mickael-kerjean/filestash/server/pkg/kernel"
-	. "github.com/mickael-kerjean/filestash/server/pkg/utils"
 	. "github.com/mickael-kerjean/filestash/server/pkg/permissions"
+	. "github.com/mickael-kerjean/filestash/server/pkg/utils"
 )
 
 func FileSearch(ctx *App, res http.ResponseWriter, req *http.Request) {
@@ -46,12 +45,20 @@ func FileSearch(ctx *App, res http.ResponseWriter, req *http.Request) {
 					}
 					return "file"
 				}(),
-				FPath: "/" + strings.TrimPrefix(
-					searchResults[i].Path(),
-					ctx.Session["path"],
-				),
+				FPath: RelativePath(ctx.Session["path"], searchResults[i].Path()),
 			}
 		}
 	}
+
+	denyList := ParsePathList(ctx.Session["path_denylist"])
+
+	filtered := searchResults[:0]
+	for _, result := range searchResults {
+		if !IsPathDenied(denyList, result.Path()) {
+			filtered = append(filtered, result)
+		}
+	}
+	searchResults = filtered
+
 	SendSuccessResults(res, searchResults)
 }
